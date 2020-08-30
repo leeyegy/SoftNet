@@ -27,14 +27,7 @@ parser.add_argument('--momentum', type=float, default=0.9, metavar='M',
                     help='SGD momentum')
 parser.add_argument('--no-cuda', action='store_true', default=False,
                     help='disables CUDA training')
-parser.add_argument('--epsilon', default=0.031,type=float,
-                    help='perturbation')
-parser.add_argument('--num-steps', default=10,
-                    help='perturb number of steps')
-parser.add_argument('--step-size', default=0.007,
-                    help='perturb step size')
-parser.add_argument('--beta', default=6.0,
-                    help='regularization, i.e., 1/lambda in TRADES')
+
 parser.add_argument('--seed', type=int, default=1, metavar='S',
                     help='random seed (default: 1)')
 parser.add_argument('--log-interval', type=int, default=100, metavar='N',
@@ -43,6 +36,12 @@ parser.add_argument('--model-dir', default='./model-cifar-ResNet',
                     help='directory of model for saving checkpoint')
 parser.add_argument('--save-freq', '-s', default=1, type=int, metavar='N',
                     help='save frequency')
+
+# test robustness
+parser.add_argument('--test-model-path', default='./model-cifar-ResNet')
+parser.add_argument('--epsilon', default=0.03137,type=float)
+parser.add_argument('--step-size', default=0.007,type=float)
+parser.add_argument("--max-iter",default=10,type=int)
 
 args = parser.parse_args()
 
@@ -147,8 +146,6 @@ def main():
     for epoch in range(1, args.epochs + 1):
         # adjust learning rate for SGD
         adjust_learning_rate(optimizer, epoch)
-
-        eval_train(model, device, train_loader)
 
         # training
         train(args, model, device, train_loader, optimizer, epoch)

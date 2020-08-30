@@ -25,9 +25,7 @@ def get_correct_num(output,target):
     score = torch.FloatTensor(output.size()).to(output)
     for k in range(output.size()[0]):
         for i in range(10):
-            print(target_map[str(i)].cuda().float().size())
-            print(output[k].size())
-            score[k,i]=target_map[str(i)].cuda().float()*output[k]
+            score[k,i]=(target_map[str(i)].cuda().float()*output[k]).sum()
     pred = score.max(1,keepdim=True)[1]
     return pred.eq(target.view_as(pred)).sum().item()
 
@@ -35,6 +33,11 @@ class Cosine_Similarity_Loss(nn.Module):
     def __init__(self):
         super(Cosine_Similarity_Loss,self).__init__()
     def forward(self,x1,target):
+        """
+        :param x1: output of model
+        :param target: hard ground truth label
+        :return: loss value
+        """
         x2 = torch.DoubleTensor(x1.size()).to(x1)
         for i in range(x2.size()[0]):
             x2[i] = target_map[str(target[i].cpu().numpy())]
