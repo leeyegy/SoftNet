@@ -17,7 +17,7 @@ parser.add_argument('--batch-size', type=int, default=128, metavar='N',
                     help='input batch size for training (default: 128)')
 parser.add_argument('--test-batch-size', type=int, default=128, metavar='N',
                     help='input batch size for testing (default: 128)')
-parser.add_argument('--epochs', type=int, default=120, metavar='N',
+parser.add_argument('--epochs', type=int, default=300, metavar='N',
                     help='number of epochs to train')
 parser.add_argument('--weight-decay', '--wd', default=2e-4,
                     type=float, metavar='W')
@@ -36,6 +36,7 @@ parser.add_argument('--model-dir', default='./model-cifar-ResNet',
                     help='directory of model for saving checkpoint')
 parser.add_argument('--save-freq', '-s', default=1, type=int, metavar='N',
                     help='save frequency')
+parser.add_argument("--resume_epoch",type=int,default=None)
 
 # test robustness
 parser.add_argument('--test-model-path', default='./model-cifar-ResNet')
@@ -123,7 +124,17 @@ def eval_test(model, device, test_loader):
     test_accuracy = correct / len(test_loader.dataset)
     return test_loss, test_accuracy
 
+# def adjust_learning_rate(optimizer, epoch):
+#     """decrease the learning rate"""
+#     lr = args.lr
+#     if epoch >= 150:
+#         lr = args.lr * 0.1
+#     if epoch >= 250:
+#         lr = args.lr * 0.01
+#     for param_group in optimizer.param_groups:
+#         param_group['lr'] = lr
 
+# original version
 def adjust_learning_rate(optimizer, epoch):
     """decrease the learning rate"""
     lr = args.lr
@@ -141,9 +152,16 @@ def main():
     # init model, ResNet18() can be also used here for training
     # model = WideResNet().to(device)
     model = ResNet18().to(device)
+    # resume
+    if  args.resume_epoch is not None:
+        start_epoch = args.resume_epoch
+        model.load_state_dict(torch.load(os.path.join(model_dir, 'model-res18-epoch{}.pt'.format(args.resume_epoch))))
+    else:
+        start_epoch = 0
     optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=args.momentum, weight_decay=args.weight_decay)
 
-    for epoch in range(1, args.epochs + 1):
+
+    for epoch in range(start_epoch+1, args.epochs + 1):
         # adjust learning rate for SGD
         adjust_learning_rate(optimizer, epoch)
 
